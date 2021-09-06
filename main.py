@@ -40,7 +40,7 @@ def from_user_message(update: Update, context: CallbackContext) -> None:
     elif update.message.video:
         msg = "{} {}\n{}".format(update.message.chat.id, update.effective_user.mention_markdown(),
                                  update.message.caption)
-        context.bot.sendVideo(chat_id=support_chat_id, document=update.message.video.file_id, caption=msg,
+        context.bot.sendVideo(chat_id=support_chat_id, video=update.message.video.file_id, caption=msg,
                               parse_mode='Markdown')
 
 
@@ -67,7 +67,7 @@ def from_support_message(update: Update, context: CallbackContext) -> None:
     elif update.message.document:
         context.bot.sendDocument(chat_id=reply_chat_id, document=update.message.document.file_id)
     elif update.message.video:
-        context.bot.sendVideo(chat_id=reply_chat_id, document=update.message.video.file_id,
+        context.bot.sendVideo(chat_id=reply_chat_id, video=update.message.video.file_id,
                               caption=update.message.caption, parse_mode='Markdown')
 
 
@@ -77,7 +77,7 @@ def message_handler(update: Update, context: CallbackContext) -> None:
     # check chat type
     if update.message.chat.type == "private" and not update.message.forward_date:
         from_user_message(update, context)
-    elif update.message.chat.type == "group" and update.message.chat.id == support_chat_id and update.message.reply_to_message and update.message.reply_to_message.from_user.username == bot_username:
+    elif update.message.reply_to_message and update.message.chat.type == "supergroup" and update.message.chat.id == support_chat_id and update.message.reply_to_message.from_user.username == bot_username:
         from_support_message(update, context)
 
 
