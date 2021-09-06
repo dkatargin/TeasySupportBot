@@ -1,3 +1,6 @@
+import time
+
+import raven
 import configparser
 
 from telegram import Update
@@ -34,6 +37,11 @@ def from_user_message(update: Update, context: CallbackContext) -> None:
                                  update.message.caption)
         context.bot.sendDocument(chat_id=support_chat_id, document=update.message.document.file_id, caption=msg,
                                  parse_mode='Markdown')
+    elif update.message.video:
+        msg = "{} {}\n{}".format(update.message.chat.id, update.effective_user.mention_markdown(),
+                                 update.message.caption)
+        context.bot.sendVideo(chat_id=support_chat_id, document=update.message.video.file_id, caption=msg,
+                              parse_mode='Markdown')
 
 
 def from_support_message(update: Update, context: CallbackContext) -> None:
@@ -58,6 +66,9 @@ def from_support_message(update: Update, context: CallbackContext) -> None:
         context.bot.sendAnimation(chat_id=reply_chat_id, animation=update.message.animation.file_id)
     elif update.message.document:
         context.bot.sendDocument(chat_id=reply_chat_id, document=update.message.document.file_id)
+    elif update.message.video:
+        context.bot.sendVideo(chat_id=reply_chat_id, document=update.message.video.file_id,
+                              caption=update.message.caption, parse_mode='Markdown')
 
 
 def message_handler(update: Update, context: CallbackContext) -> None:
@@ -81,4 +92,12 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    client = raven.Client(
+        dsn='https://{}@o989031.ingest.sentry.io/{}'.format(config.get("SENTRY", "pubkey"),
+                                                            config.get("SENTRY", "project_id")))
+    while True:
+        try:
+            main()
+        except Exception as e:
+            client.captureMessage(str(e))
+        time.sleep(5)
